@@ -1,0 +1,107 @@
+#Part 1
+#Import Modules
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+#Import Data
+salinity_data = pd.read_csv('C:/Users/LENOVO/Documents/Python Scripts/Salinity_Data.txt', delimiter='\t')
+
+print(salinity_data.head())
+
+#Read variable names
+depth = salinity_data.loc[:,'z(m)'] * -1 #This will ensure that depth increases downward
+tempC = salinity_data.loc[:,'T(C)']
+salinity = salinity_data.loc[:,'Salinity (PSU)']
+
+salinity_data.columns
+
+#Plot Data
+
+fig, axs = plt.subplots(1, 2, figsize=(10, 5), sharey=True)
+
+
+axs[0].plot(tempC, depth, color='blue', label='Temperature')
+axs[0].set_xlabel('Temperature (°C)')
+axs[0].set_ylabel('Depth (m)')
+axs[0].xaxis.set_label_position('top')  # Move the x-axis label to the top
+axs[0].xaxis.tick_top()  # Move the x-axis ticks to the top
+axs[0].set_ylabel('Depth (m)')
+axs[0].invert_yaxis() 
+axs[0].grid(True)
+axs[0].legend()
+
+
+axs[1].plot(salinity, depth, color='red', label='Salinity')
+axs[1].set_xlabel('Salinity (psu)')
+axs[1].xaxis.set_label_position('top')  # Move the x-axis label to the top
+axs[1].xaxis.tick_top()  # Move the x-axis ticks to the top
+axs[1].set_ylabel('Depth (m)')
+axs[1].invert_yaxis() 
+axs[1].grid(True)
+axs[1].legend()
+
+plt.suptitle('Temperature and Salinity Profiles')
+plt.tight_layout()
+plt.show()
+
+
+
+#Part 2
+
+#Import Modules
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+#Import data
+data = pd.read_csv('C:/Users/LENOVO/Documents/Python Scripts/SAA2_WC_2017_metocean_10min_avg.csv',parse_dates=['TIME_SERVER'], index_col=['TIME_SERVER'])
+
+#Define function that will convert latitude to normal convention
+def ddmm2dd(ddmm):
+    thedeg = np.floor(ddmm / 100.)
+    themin = (ddmm - thedeg * 100.) / 60.
+    return thedeg + themin
+
+
+# Check for missing values
+
+print("Missing values before handling:\n", data.isnull().sum())
+
+
+
+# Select data from departure to July 4th
+selected_data = data['2017/06/20':'2017/07/04']
+selected_data['LATITUDE'] = ddmm2dd(selected_data['LATITUDE'])
+
+# Plot time series of temperature
+plt.figure()
+selected_data['AIR_TEMPERATURE'].plot(label='Temperature')
+plt.xlabel('Time (days)')
+plt.ylabel('Temperature (°C)')
+plt.title('Time Series of Temperature')
+plt.style.use('grayscale')
+plt.legend()
+plt.savefig('temperature_time_series.png', dpi=200)
+
+# Plot histogram of salinity
+plt.figure()
+selected_data['TSG_SALINITY'].plot.hist(bins=range(30, 35), edgecolor='black')
+plt.xlabel('Salinity (psu)')
+plt.ylabel('Frequency')
+plt.title('Histogram of Salinity')
+plt.savefig('salinity_histogram.png', dpi=200)
+
+# Create scatter plot of wind speed vs air temperature with latitude encoded in color
+plt.figure()
+plt.scatter(selected_data['WIND_SPEED_TRUE'], selected_data['AIR_TEMPERATURE'], c=selected_data['LATITUDE'], cmap='viridis')
+plt.colorbar(label='Latitude')
+plt.xlabel('Wind Speed (m/s)')
+plt.ylabel('Air Temperature (°C)')
+plt.title('Scatter Plot of Wind Speed vs Air Temperature')
+plt.savefig('wind_speed_vs_air_temperature_scatter.png', dpi=200)
+
+plt.show()
+
